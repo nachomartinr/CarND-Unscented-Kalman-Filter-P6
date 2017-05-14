@@ -8,6 +8,8 @@ using Eigen::MatrixXd;
 using Eigen::VectorXd;
 using std::vector;
 
+#define USE_CHOLESKY_DECOMP_INVERSE
+
 /**
  * Initializes Unscented Kalman filter
  */
@@ -25,10 +27,10 @@ UKF::UKF() {
   P_ = MatrixXd::Zero(5, 5);
 
   // Process noise standard deviation longitudinal acceleration in m/s^2
-  std_a_ = 0.7; /* TODO: Tune */
+  std_a_ = 0.7; /* Tuned parameter */
 
   // Process noise standard deviation yaw acceleration in rad/s^2
-  std_yawdd_ = 0.6; /* TODO: Tune */
+  std_yawdd_ = 0.6; /* Tuned parameter */
 
   // Laser measurement noise standard deviation position1 in m
   std_laspx_ = 0.15;
@@ -95,6 +97,10 @@ UKF::UKF() {
 UKF::~UKF() {}
 
 
+/**
+ * Initialize the state mean, covariance and timestamp from an initial measurement.
+ * @param {MeasurementPackage} meas_package
+ */
 void UKF::InitializeState(const MeasurementPackage meas_package) {
 
     P_ <<   1,  0,  0,   0,  0,
@@ -197,7 +203,7 @@ void UKF::GenerateSigmaPoints(MatrixXd& Xsig_aug) const {
 
 /**
  * Apply the process transformation function to the sigma points, including
- * the process noise.
+ * the process noise. This method updates the predicted sigma points.
  * @param {MatrixXd} Xsig_aug Augmented sigma points matrix.
  * @param {double} delta_t The change in time (in seconds) since the last
  * a posteriori state.
@@ -213,7 +219,7 @@ void UKF::PredictSigmaPoints(const MatrixXd& Xsig_aug, const double delta_t) {
       double yaw      = Xsig_aug(3,i);
       double yawd     = Xsig_aug(4,i);
       double nu_a     = Xsig_aug(5,i);
-      double nu_yawdd =  Xsig_aug(6,i);      
+      double nu_yawdd = Xsig_aug(6,i);      
       
       double px_p;      
       double py_p;
@@ -247,8 +253,9 @@ void UKF::PredictSigmaPoints(const MatrixXd& Xsig_aug, const double delta_t) {
   }
 }
 
-/* Constraint angle to [-PI, PI]
- * @param {double} a Angle to wrap */
+/* Constrain angle to [-PI, PI]
+ * @param {double} a Angle to wrap 
+ */
 static inline double WrapAngle(const double & a) {
 
   double wrapped;
@@ -266,8 +273,8 @@ static inline double WrapAngle(const double & a) {
 }
 
 /**
- * Calculate the predicted mean and covariance of the a priori state from the predicted
- * sigma points.
+ * Calculates the predicted mean and covariance of the a priori state from the predicted
+ * sigma points and updates the state.
  */
 void UKF::PredictedMeanAndCovariance() {
 
@@ -320,11 +327,39 @@ void UKF::Prediction(const double delta_t) {
 }
 
 
+/** Get the inverse of Matrix S
+ * @param {MatrixXd} S Matrix (symetric positive semi-definite) to be inverted
+ */
+static inline MatrixXd Inverse(const MatrixXd & S) {
 
+#if defined(USE_CHOLESKY_DECOMP_INVERSE)
+  /* Assuming that S is symetric positive semi-definite, we can apply the 
+  Cholesky decomposition as a more efficient way of calculating the inverse.
+  In Eigen, this is done with Si = S.llt().solve(I). 
+  It might fail if numerical errors cause the S matrix to
+  lose its positive semi-definite properties. */
+  return S.llt().solve(MatrixXd::Identity(S.rows(), S.cols()));
+  
+#else
+
+  return S.inverse();
+  
+#endif
+}
+
+
+/**
+ * Get the estimated measurement, measurement covariance and kalman gain from the 
+ * sigma points for a lidar measurement.
+ * @param {VectorXd} z_pred estimated measurement
+ * @param {MatrixXd} S measurement covariance matrix
+ * @param {MatrixXd} S_inv measurement covariance matrix inverse
+ * @param {MatrixXd} K Kalman gain
+ */
 void UKF::PredictLidarMeasurement(VectorXd& z_pred,
                                   MatrixXd& S,
                                   MatrixXd& S_inv,
-                                  MatrixXd& K) {
+                                  MatrixXd& K) const {
 
   //transform sigma points into measurement space  
   MatrixXd Zsig = MatrixXd(n_z_las_, 2*n_aug_+1);
@@ -356,9 +391,9 @@ void UKF::PredictLidarMeasurement(VectorXd& z_pred,
     Tc += weights_(i)*x_diff*z_diff.transpose();
   }  
 
-  S += R_laser_;
+  S += R_laser_; /* add measurement noise */
 
-  S_inv = S.inverse();
+  S_inv = Inverse(S);
 
   //Kalman gain K
   K = Tc * S_inv;
@@ -397,10 +432,18 @@ void UKF::UpdateLidar(MeasurementPackage meas_package) {
 }
 
 
+/**
+ * Get the estimated measurement, measurement covariance and kalman gain from the 
+ * sigma points for a radar measurement.
+ * @param {VectorXd} z_pred estimated measurement
+ * @param {MatrixXd} S measurement covariance matrix
+ * @param {MatrixXd} S_inv measurement covariance matrix inverse
+ * @param {MatrixXd} K Kalman gain
+ */
 void UKF::PredictRadarMeasurement(VectorXd& z_pred,
                                   MatrixXd& S,
                                   MatrixXd& S_inv,
-                                  MatrixXd& K) {
+                                  MatrixXd& K) const {
 
   //transform sigma points into measurement space  
   MatrixXd Zsig = MatrixXd(n_z_rad_, 2 * n_aug_ + 1);
@@ -416,9 +459,9 @@ void UKF::PredictRadarMeasurement(VectorXd& z_pred,
 
     /* avoid division by 0 */
     if (fabs(px) < 0.0001)
-          px = (px < 0)? -0.0001 : 0.0001;
+      px = (px < 0)? -0.0001 : 0.0001;
     if (fabs(py) < 0.0001)
-          py = (py < 0)? -0.0001 : 0.0001;
+      py = (py < 0)? -0.0001 : 0.0001;
 
     // measurement model
     Zsig(0,i) = sqrt(px*px + py*py);                     //rho
@@ -453,9 +496,9 @@ void UKF::PredictRadarMeasurement(VectorXd& z_pred,
     Tc += weights_(i)*x_diff*z_diff.transpose();
   }  
 
-  S += R_radar_;
+  S += R_radar_; /* add measurement noise */
 
-  S_inv = S.inverse();
+  S_inv = Inverse(S);
 
   //Kalman gain K
   K = Tc * S_inv;

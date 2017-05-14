@@ -53,9 +53,6 @@ public:
   void ProcessMeasurement(const MeasurementPackage meas_package);
 
 
-
-
-
 private:
 
   ///* predicted sigma points matrix
@@ -117,18 +114,54 @@ private:
    */
   void Prediction(const double delta_t);
 
+  /**
+   * Initialize the state mean, covariance and timestamp from an initial measurement.
+   * @param {MeasurementPackage} meas_package
+   */
   void InitializeState(const MeasurementPackage meas_package);
 
+  /**
+   * Generate augmented sigma points from current, a posteriori state
+   * @param {MatrixXd} Xsig_aug Generated augmented sigma points matrix,
+   * with size (n_aug_, 2*n_aug_+1).
+   */
   void GenerateSigmaPoints(MatrixXd& Xsig_aug) const;
 
+  /**
+  * Apply the process transformation function to the sigma points, including
+  * the process noise. This method updates the predicted sigma points.
+  * @param {MatrixXd} Xsig_aug Augmented sigma points matrix.
+  * @param {double} delta_t The change in time (in seconds) since the last
+  * a posteriori state.
+  */
   void PredictSigmaPoints(const MatrixXd& Xsig_aug, const double delta_t);
 
+  /**
+   * Calculates the predicted mean and covariance of the a priori state from the predicted
+   * sigma points and updates the state.
+   */
   void PredictedMeanAndCovariance();
 
-  void PredictLidarMeasurement(VectorXd& z_pred, MatrixXd& S, MatrixXd& S_inv, MatrixXd& K);
+  /**
+   * Get the estimated measurement, measurement covariance and kalman gain from the 
+   * sigma points for a lidar measurement.
+   * @param {VectorXd} z_pred estimated measurement
+   * @param {MatrixXd} S measurement covariance matrix
+   * @param {MatrixXd} S_inv measurement covariance matrix inverse
+   * @param {MatrixXd} K Kalman gain
+   */
+  void PredictLidarMeasurement(VectorXd& z_pred, MatrixXd& S, MatrixXd& S_inv, MatrixXd& K) const;
 
+  /**
+   * Get the estimated measurement, measurement covariance and kalman gain from the 
+   * sigma points for a radar measurement.
+   * @param {VectorXd} z_pred estimated measurement
+   * @param {MatrixXd} S measurement covariance matrix
+   * @param {MatrixXd} S_inv measurement covariance matrix inverse
+   * @param {MatrixXd} K Kalman gain
+   */
+  void PredictRadarMeasurement(VectorXd& z_pred, MatrixXd& S, MatrixXd& S_inv, MatrixXd& K) const;
 
-  void PredictRadarMeasurement(VectorXd& z_pred, MatrixXd& S, MatrixXd& S_inv, MatrixXd& K);
   /**
    * Updates the state and the state covariance matrix using a laser measurement
    * @param meas_package The measurement at k+1

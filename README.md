@@ -43,21 +43,20 @@ based on a simulation data set.
 ## Results
 
 
-![Position](./imgs/position.png)
-*Position*
+![Position](./imgs/position.png)        <br>*Position*
 
 ![Px Position](./imgs/px-position.png)
-*Position (Px)*
+<br>*Position (Px)*
 
 ![Velocity](./imgs/velocity.png)
-*Velocity*
+<br>*Velocity*
 
 
 ![Yaw](./imgs/yaw.png)
-*Yaw*
+<br>*Yaw*
 
 ![Yaw Rate](./imgs/yaw_rate.png)
-*Yaw Rate*
+<br>*Yaw Rate*
 
 #### MSE
 
@@ -91,7 +90,7 @@ The UKF produces the following Normalized Innovation Squared (NIS) for each sens
 
 
 ![NIS Lidar](./imgs/NIS_laser.png)
-*NIS Lidar*
+<br>*NIS Lidar*
 
 ![NIS Lidar](./imgs/NIS_radar.png)
-*NIS Radar*
+<br>*NIS Radar*

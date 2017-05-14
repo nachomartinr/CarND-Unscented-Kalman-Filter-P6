@@ -43,30 +43,25 @@ based on a simulation data set.
 ## Results
 
 
-<p align="center">
+*Position*                  
 ![Position](./imgs/position.png)
-<br>*Position*
-</p>
+<br><br>  
 
-<p align="center">
+*Position (Px)*  
 ![Px Position](./imgs/px-position.png)
-<br>*Position (Px)*
-</p>
+<br><br>
 
-<p align="center">
+*Velocity*   
 ![Velocity](./imgs/velocity.png)
-<br>*Velocity*
-</p>
+<br><br>
 
-<p align="center">
+*Yaw*  
 ![Yaw](./imgs/yaw.png)
-<br>*Yaw*
-</p>
+<br><br>
 
-<p align="center">
+*Yaw Rate*  
 ![Yaw Rate](./imgs/yaw_rate.png)
-<br>*Yaw Rate*
-</p>
+<br><br>
 
 #### MSE
 
@@ -98,12 +93,10 @@ It is also clear that the fusion of sensors produces better results than the sen
 
 The UKF produces the following Normalized Innovation Squared (NIS) for each sensor. This represents the normalized difference between the measurement and its expected value. It follows a Chi-squared distribution (with 2 d.f for Lidar and 3 d.f. for radar). The blue line represents the NIS values below of which the probability of seeing them is 95%. It is an indicator of the consistency of the Kalman Filter.
 
-<p align="center">
+*NIS Lidar*
 ![NIS Lidar](./imgs/NIS_laser.png)
-<br>*NIS Lidar*
-</p>
+<br><br>
 
-<p align="center">
+*NIS Radar*
 ![NIS Lidar](./imgs/NIS_radar.png)
-<br>*NIS Radar*
-</p>
+<br><br>

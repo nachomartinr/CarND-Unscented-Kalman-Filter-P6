@@ -93,10 +93,10 @@ It is also clear that the fusion of sensors produces better results than the sen
 
 The UKF produces the following Normalized Innovation Squared (NIS) for each sensor. This represents the normalized difference between the measurement and its expected value. It follows a Chi-squared distribution (with 2 d.f for Lidar and 3 d.f. for radar). The blue line represents the NIS values below of which the probability of seeing them is 95%. It is an indicator of the consistency of the Kalman Filter.
 
-*NIS Lidar*
+*NIS Lidar*  
 ![NIS Lidar](./imgs/NIS_laser.png)
 <br><br>
 
-*NIS Radar*
+*NIS Radar*  
 ![NIS Lidar](./imgs/NIS_radar.png)
 <br><br>

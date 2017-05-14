@@ -3,3 +3,7 @@
 
 # build files
 build/
+
+# ipython checkpoints
+.ipynb_checkpoints
+
